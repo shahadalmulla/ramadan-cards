@@ -3,17 +3,34 @@
     <div class="stage">
       <!-- ✅ البطاقة -->
       <div class="frame">
-        <canvas ref="canvasRef" :width="W" :height="H" class="canvas"></canvas>
+        <canvas
+          ref="canvasRef"
+          :width="W"
+          :height="H"
+          class="canvas"
+        ></canvas>
+
+        <!-- ✅ input شفاف للضغط والكتابة فقط -->
+        <input
+          ref="nameInputRef"
+          v-model="name"
+          class="nameOverlay"
+          :style="nameOverlayStyle"
+          maxlength="40"
+          dir="rtl"
+          inputmode="text"
+          @focus="onFocus"
+          @blur="onBlur"
+        />
       </div>
 
-      <!-- ✅ لوحة إعدادات -->
-      <aside class="sidebar" @click.stop>
+      <!-- ✅ لوحة الإعدادات -->
+      <aside class="sidebar">
         <div class="panel">
-          <div class="panelTitle">إعدادات</div>
 
           <label class="field">
             <span class="label">الاسم</span>
-            <input v-model="name" class="input" maxlength="40" placeholder="اكتبي الاسم" />
+            <input v-model="name" class="input" maxlength="40" />
           </label>
 
           <label class="field">
@@ -37,16 +54,11 @@
           </label>
 
           <div class="btnRow">
-            <button class="btn" type="button" @click="goBack">رجوع</button>
-
-            <!-- ✅ تحميل مباشر PNG -->
-            <button class="btn primary" type="button" @click="downloadPNG">
-              تحميل
-            </button>
+            <button class="btn" @click="goBack">رجوع</button>
+            <button class="btn primary" @click="downloadPNG">تحميل</button>
           </div>
         </div>
       </aside>
-      <!-- /sidebar -->
     </div>
   </div>
 </template>
@@ -55,31 +67,69 @@
 const router = useRouter()
 const route = useRoute()
 
-// ✅ مقاس سناب
+/* مقاس الصورة */
 const W = 1080
 const H = 1920
-const canvasRef = ref(null)
 
-// ✅ بيانات النص
-const name = ref("أكتب أسمك هنا")
+const canvasRef = ref(null)
+const nameInputRef = ref(null)
+
+/* النص */
+const placeholderText = "اكتب اسمك هنا"
+const name = ref(placeholderText)
 const fontFamily = ref("Times New Roman")
 const fontSize = ref(50)
 const textColor = ref("#9b9898ff")
 
-// ✅ الخلفية المختارة
+const isFocused = ref(false)
+
+/* الخلفية */
 const bg = computed(() => route.query.bg || "/templates/ramadan_1.png")
 
-// ✅ مكان البوكس الأبيض داخل الصورة (ثابت)
+/* مكان البوكس على مقاس الكانفس */
 const NAME_BOX = { x: 180, y: 1620, w: 720, h: 130, r: 60 }
+
+/* مكان input فوق البوكس (responsive) */
+const nameOverlayStyle = computed(() => {
+  const canvas = canvasRef.value
+  if (!canvas) return {}
+
+  const rect = canvas.getBoundingClientRect()
+  const sx = rect.width / W
+  const sy = rect.height / H
+
+  return {
+    left: `${NAME_BOX.x * sx}px`,
+    top: `${NAME_BOX.y * sy}px`,
+    width: `${NAME_BOX.w * sx}px`,
+    height: `${NAME_BOX.h * sy}px`,
+    fontSize: `${fontSize.value * sy}px`,
+    fontFamily: fontFamily.value,
+  }
+})
 
 onMounted(() => {
   renderCard()
+  window.addEventListener("resize", renderCard)
 })
+
+onBeforeUnmount(() => {
+  window.removeEventListener("resize", renderCard)
+})
+
+function onFocus() {
+  isFocused.value = true
+  if (name.value === placeholderText) name.value = ""
+}
+
+function onBlur() {
+  isFocused.value = false
+  if (!name.value) name.value = placeholderText
+}
 
 function loadImage(src) {
   return new Promise((resolve, reject) => {
     const img = new Image()
-    img.crossOrigin = "anonymous"
     img.onload = () => resolve(img)
     img.onerror = reject
     img.src = src
@@ -113,18 +163,11 @@ async function renderCard() {
   const bgImg = await loadImage(bg.value)
   ctx.drawImage(bgImg, 0, 0, W, H)
 
-  // ✅ بوكس أبيض داخل الكانفس (بدون ظل)
+  /* البوكس الأبيض */
   ctx.fillStyle = "rgba(255,255,255,0.96)"
   roundRect(ctx, NAME_BOX.x, NAME_BOX.y, NAME_BOX.w, NAME_BOX.h, NAME_BOX.r)
   ctx.fill()
 
-  // ✅ بدون ظلال
-  ctx.shadowColor = "transparent"
-  ctx.shadowBlur = 0
-  ctx.shadowOffsetX = 0
-  ctx.shadowOffsetY = 0
-
-  // ✅ النص داخل البوكس
   ctx.save()
   roundRect(ctx, NAME_BOX.x, NAME_BOX.y, NAME_BOX.w, NAME_BOX.h, NAME_BOX.r)
   ctx.clip()
@@ -134,16 +177,21 @@ async function renderCard() {
   ctx.textAlign = "center"
   ctx.textBaseline = "middle"
 
-  const safeText = trimText(ctx, name.value, NAME_BOX.w - 80)
-  ctx.fillText(safeText, NAME_BOX.x + NAME_BOX.w / 2, NAME_BOX.y + NAME_BOX.h / 2)
+  const textToDraw =
+    name.value === placeholderText ? "" : name.value
+
+  const safeText = trimText(ctx, textToDraw, NAME_BOX.w - 80)
+  ctx.fillText(
+    safeText,
+    NAME_BOX.x + NAME_BOX.w / 2,
+    NAME_BOX.y + NAME_BOX.h / 2
+  )
 
   ctx.restore()
 }
 
 function downloadPNG() {
   const canvas = canvasRef.value
-  if (!canvas) return
-
   canvas.toBlob((blob) => {
     if (!blob) return
     const url = URL.createObjectURL(blob)
@@ -152,7 +200,7 @@ function downloadPNG() {
     a.download = "ramadan-card.png"
     a.click()
     URL.revokeObjectURL(url)
-  }, "image/png")
+  })
 }
 
 function goBack() {
@@ -164,111 +212,81 @@ watch(() => bg.value, renderCard)
 </script>
 
 <style scoped>
-/* ✅ الصفحة: سكرول بالجوال بدون قص */
 .page {
   min-height: 100dvh;
   background: #111;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: clamp(10px, 3vw, 14px);
-  padding-bottom: calc(clamp(10px, 3vw, 14px) + env(safe-area-inset-bottom));
+  padding: 12px;
 }
 
-/* ✅ ترتيب عام */
 .stage {
-  min-height: calc(100dvh - 20px);
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
   gap: 14px;
 }
 
-/* ✅ البطاقة تعتمد على العرض */
 .frame {
+  position: relative;
   width: min(92vw, 420px);
   aspect-ratio: 9 / 16;
   border-radius: 22px;
   overflow: hidden;
-  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
   background: #000;
 }
 
 .canvas {
   width: 100%;
   height: 100%;
-  display: block;
 }
 
-/* ✅ sidebar */
+/* ✅ input شفاف – يمنع تكرار الحروف */
+.nameOverlay {
+  position: absolute;
+  background: transparent;
+  border: 0;
+  outline: none;
+
+  text-align: center;
+  font-weight: 700;
+
+  color: transparent;      /* الحل الأساسي */
+  caret-color: #111;       /* مؤشر الكتابة */
+
+  padding: 0 12px;
+  border-radius: 999px;
+}
+
 .sidebar {
   width: min(92vw, 360px);
-  display: flex;
-  justify-content: center;
 }
 
 .panel {
-  width: 100%;
   padding: 14px;
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(10px);
+  background: rgba(17, 17, 17, 0.86);
   color: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.panelTitle {
-  font-weight: 800;
-  font-size: 14px;
-  opacity: 0.95;
-  text-align: right;
 }
 
 .field {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.label {
-  font-size: 12px;
-  opacity: 0.9;
-  text-align: right;
+  margin-bottom: 8px;
 }
 
 .input,
 .select {
   height: 38px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(0, 0, 0, 0.25);
+  background: rgba(0, 0, 0, 0.3);
   color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 0 10px;
-  outline: none;
-  text-align: right;
-}
-
-.range {
-  width: 100%;
-}
-
-.color {
-  width: 100%;
-  height: 38px;
-  border-radius: 14px;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
 }
 
 .btnRow {
   display: flex;
   gap: 10px;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 6px;
 }
 
 .btn {
@@ -278,55 +296,9 @@ watch(() => bg.value, renderCard)
   background: rgba(0, 0, 0, 0.35);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  cursor: pointer;
-  font-size: 13px;
 }
 
 .btn.primary {
   background: rgba(34, 197, 94, 0.35);
-}
-
-/* ✅ ديسكتوب: جنب بعض */
-@media (min-width: 900px) {
-  .stage {
-    flex-direction: row;
-    align-items: center;
-  }
-  .sidebar {
-    width: 280px;
-    max-width: 34vw;
-  }
-  .frame {
-    width: min(46vw, 460px);
-  }
-}
-
-/* ✅ جوال: اللوحة تحت + sticky بدون ما تغطي على الكارد */
-@media (max-width: 899px) {
-  .stage {
-    flex-direction: column;
-    align-items: center;
-  }
-
-  .sidebar {
-    position: sticky;
-    bottom: 0;
-    padding-bottom: calc(12px + env(safe-area-inset-bottom));
-    z-index: 30;
-  }
-
-  .panel {
-    background: rgba(17, 17, 17, 0.86);
-    border: 1px solid rgba(255, 255, 255, 0.10);
-    backdrop-filter: blur(12px);
-  }
-}
-
-/* ✅ شاشات صغيرة جدًا */
-@media (max-width: 360px) {
-  .frame {
-    width: 94vw;
-    border-radius: 18px;
-  }
 }
 </style>
