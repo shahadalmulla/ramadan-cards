@@ -6,7 +6,7 @@
         <canvas ref="canvasRef" :width="W" :height="H" class="canvas"></canvas>
       </div>
 
-      <!-- ✅ لوحة إعدادات خارج البطاقة (في الأسود) -->
+      <!-- ✅ لوحة إعدادات -->
       <aside class="sidebar" @click.stop>
         <div class="panel">
           <div class="panelTitle">إعدادات</div>
@@ -203,44 +203,53 @@ watch(() => bg.value, renderCard)
 </script>
 
 <style scoped>
+/* ✅ الصفحة: اسمحي بالسكرول للجوال بدل قص */
 .page {
-  height: 100dvh;
+  min-height: 100dvh;
   background: #111;
-  overflow: hidden;
+
+  /* مهم للجوال: لا تقص المحتوى */
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding: clamp(10px, 3vw, 14px);
+  padding-bottom: calc(clamp(10px, 3vw, 14px) + env(safe-area-inset-bottom));
 }
 
-/* ✅ نخلي البطاقة بالنص والـsidebar بالأسود */
+/* ✅ ترتيب عام */
 .stage {
-  height: 100%;
+  min-height: calc(100dvh - 20px);
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 18px;
-  padding: 12px;
+  gap: 14px;
 }
 
+/* ✅ البطاقة: خليها تعتمد على العرض (أفضل للجوال) */
 .frame {
-  position: relative;
-  height: 100%;
+  width: min(92vw, 420px);
   aspect-ratio: 9 / 16;
-  max-width: 100%;
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.35);
+  background: #000;
 }
 
+/* ✅ الكانفس يتمدد داخل الفريم */
 .canvas {
   width: 100%;
   height: 100%;
   display: block;
 }
 
-/* ✅ sidebar على الأسود */
+/* ✅ sidebar */
 .sidebar {
-  width: 280px;
-  max-width: 34vw;
-  height: auto;
+  width: min(92vw, 360px);
   display: flex;
   justify-content: center;
 }
 
+/* ✅ شكل اللوحة */
 .panel {
   width: 100%;
   padding: 14px;
@@ -357,19 +366,47 @@ watch(() => bg.value, renderCard)
   background: rgba(255, 255, 255, 0.08);
 }
 
-/* ✅ على الشاشات الصغيرة نخليه تحت */
-@media (max-width: 900px) {
+/* ✅ ديسكتوب/شاشات عريضة: كارد + سايدبار جنب بعض */
+@media (min-width: 900px) {
+  .stage {
+    flex-direction: row;
+    align-items: center;
+  }
+  .sidebar {
+    width: 280px;
+    max-width: 34vw;
+  }
+  .frame {
+    width: min(46vw, 460px);
+  }
+}
+
+/* ✅ جوال: خلي اللوحة تحت + خليها sticky عشان ما تضيع */
+@media (max-width: 899px) {
   .stage {
     flex-direction: column;
     align-items: center;
   }
+
   .sidebar {
-    width: min(520px, calc(100% - 24px));
-    max-width: 100%;
+    position: sticky;
+    bottom: 0;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 30;
   }
+
+  .panel {
+    background: rgba(17, 17, 17, 0.86);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    backdrop-filter: blur(12px);
+  }
+}
+
+/* ✅ شاشات صغيرة جدًا */
+@media (max-width: 360px) {
   .frame {
-    height: auto;
-    width: min(420px, 100%);
+    width: 94vw;
+    border-radius: 18px;
   }
 }
 </style>
