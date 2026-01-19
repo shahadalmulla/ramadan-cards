@@ -9,7 +9,7 @@
     <!-- منطقة المعاينة -->
     <div class="stage">
       <!-- سهم يسار -->
-      <button class="arrow left" @click="prev" aria-label="السابق">‹</button>
+      <button class="arrow left" @click="prev">‹</button>
 
       <!-- الكارد -->
       <div class="preview">
@@ -17,12 +17,13 @@
       </div>
 
       <!-- سهم يمين -->
-      <button class="arrow right" @click="next" aria-label="التالي">›</button>
+      <button class="arrow right" @click="next">›</button>
     </div>
 
-    <!-- معلومات القالب -->
+    <!-- اسم التصميم + النقاط -->
     <div class="info">
       <div class="label">{{ current.label }}</div>
+
       <div class="dots">
         <span
           v-for="(b, i) in backgrounds"
@@ -34,15 +35,15 @@
       </div>
     </div>
 
-    <!-- زر التالي -->
-    <div class="actions">
-      <button class="btn" @click="goNext">التالي</button>
-    </div>
-
     <!-- الحقوق -->
     <footer class="footer">
       by: shahadalmulla — contact: shahadalmulla112255@gmail.com
     </footer>
+
+    <!-- زر التالي (ثابت) -->
+    <div class="next-bar">
+      <button class="next-btn" @click="goNext">التالي</button>
+    </div>
   </div>
 </template>
 
@@ -67,6 +68,7 @@ function next() {
 function go(i) {
   index.value = i
 }
+
 function goNext() {
   router.push({
     path: "/card/ramadan/edit",
@@ -76,9 +78,8 @@ function goNext() {
 </script>
 
 <style scoped>
-/* الصفحة */
 .page {
-  min-height: 100dvh;
+  min-height: 100vh;
   background: #f3f4f6;
   display: flex;
   flex-direction: column;
@@ -89,33 +90,33 @@ function goNext() {
 /* العنوان */
 .header {
   text-align: center;
-  margin: 24px 16px 8px;
+  padding: 24px 16px 10px;
 }
 .header h1 {
   font-size: 22px;
   font-weight: 800;
-  margin-bottom: 6px;
 }
 .header p {
   font-size: 14px;
   color: #6b7280;
+  margin-top: 6px;
 }
 
-/* منطقة المعاينة */
+/* المعاينة */
 .stage {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  margin: 16px 0;
+  padding: 24px 0;
 }
 
-/* الكارد 9:16 */
+/* الكارد */
 .preview {
   position: relative;
+  width: 280px;
   aspect-ratio: 9 / 16;
-  width: min(78vw, 360px);
   border-radius: 22px;
   overflow: hidden;
   background: #000;
@@ -137,31 +138,32 @@ function goNext() {
   border-radius: 999px;
   border: none;
   background: #fff;
-  box-shadow: 0 6px 18px rgba(0,0,0,0.18);
-  font-size: 26px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  font-size: 22px;
   cursor: pointer;
 }
-.arrow.left { left: calc(50% - 220px); }
-.arrow.right { right: calc(50% - 220px); }
+.arrow.left {
+  left: calc(50% - 190px);
+}
+.arrow.right {
+  right: calc(50% - 190px);
+}
 
-/* معلومات القالب */
+/* اسم التصميم */
 .info {
-  margin-top: 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  text-align: center;
+  gap: 8px;
 }
 .label {
-  width: 100%;
-  font-weight: 800;
-  font-size: 16px;
-  text-align: center;
+  font-weight: 700;
 }
+
+/* النقاط */
 .dots {
   display: flex;
   gap: 8px;
-  margin-top: 8px;
 }
 .dot {
   width: 8px;
@@ -174,26 +176,33 @@ function goNext() {
   background: #111827;
 }
 
-/* زر التالي */
-.actions {
-  margin: 16px 0 8px;
-}
-.btn {
-  background: #111827;
-  color: #fff;
-  border: none;
-  padding: 12px 22px;
-  border-radius: 14px;
-  font-weight: 800;
-  cursor: pointer;
-}
-
 /* الحقوق */
 .footer {
-  margin-top: auto;
-  padding: 14px 8px;
+  margin-top: 16px;
   font-size: 12px;
   color: #6b7280;
-  text-align: center;
+}
+
+/* زر التالي */
+.next-bar {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+}
+.next-btn {
+  background: #111827;
+  color: #fff;
+  padding: 14px 32px;
+  border-radius: 999px;
+  font-size: 16px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
+.next-btn:hover {
+  background: #000;
 }
 </style>
