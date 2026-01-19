@@ -39,16 +39,10 @@
           <div class="btnRow">
             <button class="btn" type="button" @click="goBack">رجوع</button>
 
-            <div class="dropdown" @click.stop>
-              <button class="btn primary" type="button" @click.stop="toggleDownload">
-                تحميل <span class="caret">▾</span>
-              </button>
-
-              <div v-if="openDownload" class="menu">
-                <button class="menuItem" type="button" @click="downloadPNGAndClose">تحميل PNG</button>
-                <button class="menuItem" type="button" @click="downloadPDFAndClose">تحميل PDF</button>
-              </div>
-            </div>
+            <!-- ✅ تحميل مباشر PNG -->
+            <button class="btn primary" type="button" @click="downloadPNG">
+              تحميل
+            </button>
           </div>
         </div>
       </aside>
@@ -58,8 +52,6 @@
 </template>
 
 <script setup>
-import { jsPDF } from "jspdf"
-
 const router = useRouter()
 const route = useRoute()
 
@@ -69,10 +61,10 @@ const H = 1920
 const canvasRef = ref(null)
 
 // ✅ بيانات النص
-const name = ref("شهد الملا")
-const fontFamily = ref("Tahoma")
-const fontSize = ref(56)
-const textColor = ref("#111111")
+const name = ref("أكتب أسمك هنا")
+const fontFamily = ref("Times New Roman")
+const fontSize = ref(50)
+const textColor = ref("#9b9898ff")
 
 // ✅ الخلفية المختارة
 const bg = computed(() => route.query.bg || "/templates/ramadan_1.png")
@@ -80,24 +72,8 @@ const bg = computed(() => route.query.bg || "/templates/ramadan_1.png")
 // ✅ مكان البوكس الأبيض داخل الصورة (ثابت)
 const NAME_BOX = { x: 180, y: 1620, w: 720, h: 130, r: 60 }
 
-// dropdown
-const openDownload = ref(false)
-function toggleDownload() {
-  openDownload.value = !openDownload.value
-}
-function closeDownload() {
-  openDownload.value = false
-}
-function handleOutsideClick() {
-  closeDownload()
-}
-
 onMounted(() => {
   renderCard()
-  window.addEventListener("click", handleOutsideClick)
-})
-onBeforeUnmount(() => {
-  window.removeEventListener("click", handleOutsideClick)
 })
 
 function loadImage(src) {
@@ -166,6 +142,8 @@ async function renderCard() {
 
 function downloadPNG() {
   const canvas = canvasRef.value
+  if (!canvas) return
+
   canvas.toBlob((blob) => {
     if (!blob) return
     const url = URL.createObjectURL(blob)
@@ -177,23 +155,6 @@ function downloadPNG() {
   }, "image/png")
 }
 
-function downloadPDF() {
-  const canvas = canvasRef.value
-  const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [W, H] })
-  pdf.addImage(canvas.toDataURL("image/png"), "PNG", 0, 0, W, H)
-  pdf.save("ramadan-card.pdf")
-}
-
-function downloadPNGAndClose() {
-  downloadPNG()
-  closeDownload()
-}
-
-function downloadPDFAndClose() {
-  downloadPDF()
-  closeDownload()
-}
-
 function goBack() {
   router.push("/card/ramadan")
 }
@@ -203,15 +164,12 @@ watch(() => bg.value, renderCard)
 </script>
 
 <style scoped>
-/* ✅ الصفحة: اسمحي بالسكرول للجوال بدل قص */
+/* ✅ الصفحة: سكرول بالجوال بدون قص */
 .page {
   min-height: 100dvh;
   background: #111;
-
-  /* مهم للجوال: لا تقص المحتوى */
   overflow-y: auto;
   overflow-x: hidden;
-
   padding: clamp(10px, 3vw, 14px);
   padding-bottom: calc(clamp(10px, 3vw, 14px) + env(safe-area-inset-bottom));
 }
@@ -225,7 +183,7 @@ watch(() => bg.value, renderCard)
   gap: 14px;
 }
 
-/* ✅ البطاقة: خليها تعتمد على العرض (أفضل للجوال) */
+/* ✅ البطاقة تعتمد على العرض */
 .frame {
   width: min(92vw, 420px);
   aspect-ratio: 9 / 16;
@@ -235,7 +193,6 @@ watch(() => bg.value, renderCard)
   background: #000;
 }
 
-/* ✅ الكانفس يتمدد داخل الفريم */
 .canvas {
   width: 100%;
   height: 100%;
@@ -249,7 +206,6 @@ watch(() => bg.value, renderCard)
   justify-content: center;
 }
 
-/* ✅ شكل اللوحة */
 .panel {
   width: 100%;
   padding: 14px;
@@ -330,43 +286,7 @@ watch(() => bg.value, renderCard)
   background: rgba(34, 197, 94, 0.35);
 }
 
-.dropdown {
-  position: relative;
-  flex: 1;
-}
-
-.caret {
-  opacity: 0.9;
-}
-
-.menu {
-  position: absolute;
-  right: 0;
-  top: 46px;
-  width: 100%;
-  background: rgba(0, 0, 0, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 14px;
-  padding: 6px;
-  z-index: 50;
-}
-
-.menuItem {
-  width: 100%;
-  text-align: right;
-  padding: 10px 10px;
-  border-radius: 10px;
-  background: transparent;
-  color: #fff;
-  border: 0;
-  cursor: pointer;
-}
-
-.menuItem:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-/* ✅ ديسكتوب/شاشات عريضة: كارد + سايدبار جنب بعض */
+/* ✅ ديسكتوب: جنب بعض */
 @media (min-width: 900px) {
   .stage {
     flex-direction: row;
@@ -381,7 +301,7 @@ watch(() => bg.value, renderCard)
   }
 }
 
-/* ✅ جوال: خلي اللوحة تحت + خليها sticky عشان ما تضيع */
+/* ✅ جوال: اللوحة تحت + sticky بدون ما تغطي على الكارد */
 @media (max-width: 899px) {
   .stage {
     flex-direction: column;
@@ -391,7 +311,7 @@ watch(() => bg.value, renderCard)
   .sidebar {
     position: sticky;
     bottom: 0;
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
     z-index: 30;
   }
 
