@@ -3,6 +3,7 @@
     <!-- Top -->
     <header class="topbar">
       <div class="brand">
+        <!-- لو اسم اللوقو مختلف عدّليه هنا -->
         <img src="/brand/logo.png" alt="شعار أسرة آل ملا" class="logo" />
         <div class="brandText">
           <div class="brandTitle">أسرة آل ملا</div>
@@ -27,11 +28,18 @@
         <div class="preview">
           <img :src="current.src" :alt="current.label" />
         </div>
+
+        <div class="previewMeta">
+          <div class="metaLeft">
+            <span class="pill">رمضان {{ current.id }}</span>
+          </div>
+          <div class="metaRight">جاهز للمعايدة ✨</div>
+        </div>
       </div>
     </section>
 
-    <!-- Templates grid (NO horizontal scroll) -->
-    <section class="thumbs">
+    <!-- Templates grid (cards 9/16) -->
+    <section class="thumbs" aria-label="قائمة القوالب">
       <button
         v-for="(b, i) in backgrounds"
         :key="b.id"
@@ -39,9 +47,16 @@
         :class="{ active: i === index }"
         @click="index = i"
         type="button"
+        :aria-label="`اختيار ${b.label}`"
       >
-        <img :src="b.src" :alt="b.label" />
-        <span class="thumbNo">{{ b.id }}</span>
+        <div class="thumbFrame">
+          <img :src="b.src" :alt="b.label" />
+        </div>
+
+        <div class="thumbBar">
+          <span class="thumbTitle">رمضان {{ b.id }}</span>
+          <span class="thumbTag" v-if="i === index">محدد</span>
+        </div>
       </button>
     </section>
 
@@ -56,12 +71,7 @@
     <footer class="footer">
       <span>by: shahad almulla</span>
       <span class="dot">•</span>
-      <a
-        class="link"
-        href="mailto:shahadalmulla112255@gmail.com"
-      >
-        للتواصل اضغط هنا
-      </a>
+      <a class="link" href="mailto:shahadalmulla112255@gmail.com">للتواصل اضغط هنا</a>
     </footer>
   </div>
 </template>
@@ -139,6 +149,7 @@ const goNext = () => {
   background: rgba(184, 139, 58, 0.12);
   border: 1px solid rgba(184, 139, 58, 0.25);
   color: #6b4a1e;
+  white-space: nowrap;
 }
 
 /* ===== Title ===== */
@@ -171,8 +182,9 @@ const goNext = () => {
   max-width: 420px;
   padding: 10px;
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.62);
   border: 1px solid rgba(184, 139, 58, 0.25);
+  box-shadow: 0 18px 55px rgba(43, 31, 18, 0.12);
 }
 
 .preview {
@@ -188,7 +200,36 @@ const goNext = () => {
   object-fit: cover;
 }
 
-/* ===== Templates grid ===== */
+.previewMeta {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: rgba(251, 246, 236, 0.92);
+  border: 1px solid rgba(184, 139, 58, 0.22);
+}
+
+.pill {
+  display: inline-flex;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-weight: 800;
+  font-size: 12px;
+  color: #6b4a1e;
+  background: rgba(184, 139, 58, 0.12);
+  border: 1px solid rgba(184, 139, 58, 0.22);
+}
+
+.metaRight {
+  font-size: 12px;
+  color: rgba(107, 74, 30, 0.75);
+  font-weight: 700;
+}
+
+/* ===== Templates grid (cards) ===== */
 .thumbs {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
@@ -196,41 +237,67 @@ const goNext = () => {
   margin-top: 10px;
 }
 
-@media (min-width: 720px) {
+/* على الشاشات الكبيرة نخليها 3 أعمدة */
+@media (min-width: 900px) {
   .thumbs {
     grid-template-columns: repeat(3, 1fr);
   }
 }
 
 .thumb {
-  position: relative;
-  border-radius: 16px;
+  border: 2px solid rgba(184, 139, 58, 0.18);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 18px;
   overflow: hidden;
-  border: 2px solid rgba(184, 139, 58, 0.2);
-  background: #fff;
   cursor: pointer;
+  padding: 0;
+  text-align: inherit;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.thumb:active {
+  transform: scale(0.99);
 }
 
 .thumb.active {
   border-color: #b88b3a;
-  box-shadow: 0 6px 18px rgba(184, 139, 58, 0.3);
+  box-shadow: 0 10px 22px rgba(184, 139, 58, 0.22);
 }
 
-.thumb img {
+.thumbFrame {
+  aspect-ratio: 9 / 16; /* ✅ هذا اللي رجّع شكل البطاقات */
+  background: #fff;
+  overflow: hidden;
+}
+
+.thumbFrame img {
   width: 100%;
-  height: 120px;
+  height: 100%;
   object-fit: cover;
+  display: block;
 }
 
-.thumbNo {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: rgba(251, 246, 236, 0.9);
+.thumbBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(251, 246, 236, 0.95);
+  border-top: 1px solid rgba(184, 139, 58, 0.18);
+}
+
+.thumbTitle {
+  font-weight: 900;
+  font-size: 13px;
   color: #6b4a1e;
-  font-weight: 800;
+}
+
+.thumbTag {
   font-size: 12px;
-  padding: 2px 8px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(135deg, #d7b46a, #b88b3a);
+  padding: 4px 10px;
   border-radius: 999px;
 }
 
@@ -246,33 +313,31 @@ const goNext = () => {
   max-width: 320px;
   padding: 12px;
   font-size: 15px;
-  font-weight: 800;
+  font-weight: 900;
   border-radius: 999px;
   border: none;
   cursor: pointer;
   color: #fff;
   background: linear-gradient(135deg, #d7b46a, #b88b3a);
+  box-shadow: 0 14px 28px rgba(184, 139, 58, 0.22);
 }
 
 /* ===== Footer ===== */
 .footer {
-  margin-top: 14px;
+  margin-top: 12px;
   font-size: 12px;
   color: rgba(107, 74, 30, 0.7);
   display: flex;
   justify-content: center;
   gap: 6px;
   flex-wrap: wrap;
-  position: relative;
-  z-index: 5;
 }
 
 .link {
   color: #b88b3a;
-  font-weight: 700;
+  font-weight: 800;
   text-decoration: none;
 }
-
 .link:hover {
   text-decoration: underline;
 }
