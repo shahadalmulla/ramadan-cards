@@ -2,16 +2,7 @@
   <div class="app-wrapper">
     <NuxtPage />
 
-    <!-- Footer ثابت -->
-    <footer class="footer-fixed">
-      <span>
-        by: <strong>shahadalmulla</strong> —
-        contact:
-        <a href="mailto:shahadalmulla112255@gmail.com">
-          shahadalmulla112255@gmail.com
-        </a>
-      </span>
-    </footer>
+
   </div>
 </template>
 
