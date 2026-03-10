@@ -31,7 +31,7 @@
 
         <div class="previewMeta">
           <div class="metaLeft">
-            <span class="pill">رمضان {{ current.id }}</span>
+            <span class="pill">العيد {{ current.id }}</span>
           </div>
           <div class="metaRight">جاهز للمعايدة ✨</div>
         </div>
@@ -54,7 +54,7 @@
         </div>
 
         <div class="thumbBar">
-          <span class="thumbTitle">رمضان {{ b.id }}</span>
+          <span class="thumbTitle">العيد {{ b.id }}</span>
           <span class="thumbTag" v-if="i === index">محدد</span>
         </div>
       </button>
@@ -83,7 +83,7 @@ const backgrounds = Array.from({ length: 12 }, (_, i) => {
   const n = i + 1
   return {
     id: n,
-    label: `رمضان ${n}`,
+    label: `العيد ${n}`,
     src: `/templates/ramadan_${n}.png`,
   }
 })
